@@ -20,7 +20,7 @@ class DataValidationRulesResolver
         $overWrittenRules = $class::rules();
 
         return $this->dataConfig->getDataClass($class)
-            ->properties()
+            ->properties
             ->reject(fn (DataProperty $property) => array_key_exists($property->name, $overWrittenRules) || ! $property->validate)
             ->mapWithKeys(fn (DataProperty $property) => $resolver->execute($property, $nullable))
             ->merge($overWrittenRules);
