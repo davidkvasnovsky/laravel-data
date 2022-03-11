@@ -15,12 +15,12 @@ use Spatie\LaravelData\Tests\TestCase;
 
 class DataFromSomethingResolverTest extends TestCase
 {
-    public function setUp() : void
+    public function setUp(): void
     {
         parent::setUp();
 
         $this->handleExceptions([
-            ValidationException::class
+            ValidationException::class,
         ]);
     }
 
@@ -136,7 +136,7 @@ class DataFromSomethingResolverTest extends TestCase
             }
         };
 
-        Route::post('/', fn(Request $request) => $data::from($request));
+        Route::post('/', fn (Request $request) => $data::from($request));
 
         $this->postJson('/', [])->assertJsonValidationErrorFor('string');
 
