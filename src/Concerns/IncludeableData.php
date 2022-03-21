@@ -2,8 +2,8 @@
 
 namespace Spatie\LaravelData\Concerns;
 
-use Spatie\LaravelData\Support\PartialsParser;
 use Spatie\LaravelData\Support\InclusionTrees;
+use Spatie\LaravelData\Support\PartialsParser;
 
 trait IncludeableData
 {
@@ -60,10 +60,10 @@ trait IncludeableData
         }
 
         return new InclusionTrees(
-            !empty($this->includes) ? (new PartialsParser())->execute($this->includes) : null,
-            !empty($this->excludes) ? (new PartialsParser())->execute($this->excludes) : null,
-            !empty($this->only) ? (new PartialsParser())->execute($this->only) : null,
-            !empty($this->except) ? (new PartialsParser())->execute($this->except) : null,
+            ! empty($this->includes) ? (new PartialsParser())->execute($this->includes) : null,
+            ! empty($this->excludes) ? (new PartialsParser())->execute($this->excludes) : null,
+            ! empty($this->only) ? (new PartialsParser())->execute($this->only) : null,
+            ! empty($this->except) ? (new PartialsParser())->execute($this->except) : null,
         );
     }
 }
