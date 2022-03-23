@@ -10,13 +10,14 @@ use Illuminate\Testing\TestResponse;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Validator;
-use Spatie\LaravelData\Attributes\Validation\RequiredWith;
+use Spatie\LaravelData\Attributes\Validation\Max;
 use Spatie\LaravelData\Attributes\WithoutValidation;
 use Spatie\LaravelData\Tests\Factories\DataBlueprintFactory;
 use Spatie\LaravelData\Tests\Factories\DataMagicMethodFactory;
 use Spatie\LaravelData\Tests\Factories\DataPropertyBlueprintFactory;
 use Spatie\LaravelData\Tests\Fakes\RequestData;
 use Spatie\LaravelData\Tests\Fakes\SimpleData;
+use Spatie\LaravelData\Undefined;
 
 class RequestDataTest extends TestCase
 {
@@ -234,8 +235,7 @@ class RequestDataTest extends TestCase
             ->withProperty(
                 DataPropertyBlueprintFactory::new('last_name')
                 ->withAttribute(WithoutValidation::class)
-                ->withAttribute(RequiredWith::class, ['first_name'])
-                ->nullable()
+                ->withAttribute(Max::class, [2])
                 ->withType('string')
             )
             ->create();
@@ -245,10 +245,10 @@ class RequestDataTest extends TestCase
         });
 
         $this->postJson('/other-route', [
-            'first_name' => 'Rick',
+            'first_name' => 'Rick', 'last_name' => 'Astley',
         ])
             ->assertOk()
-            ->assertJson(['first_name' => 'Rick', 'last_name' => null]);
+            ->assertJson(['first_name' => 'Rick', 'last_name' => 'Astley']);
     }
 
     /** @test */
@@ -274,6 +274,36 @@ class RequestDataTest extends TestCase
         $this->postJson('/other-route', [
             'first_name' => 'Rick',
             'last_name' => 'Astley',
+        ])
+            ->assertOk()
+            ->assertJson(['name' => 'Rick Astley']);
+    }
+
+    /** @test */
+    public function it_wont_validate_undefined_properties()
+    {
+        DataBlueprintFactory::new('UndefinableDataFromRequest')
+            ->withProperty(
+                DataPropertyBlueprintFactory::new('name')
+                    ->withType('string'),
+                DataPropertyBlueprintFactory::new('age')
+                    ->withType('int', Undefined::class)
+            )
+            ->create();
+
+        Route::post('/other-route', function (\UndefinableDataFromRequest $data) {
+            return $data->toArray();
+        });
+
+        $this->postJson('/other-route', [
+            'name' => 'Rick Astley',
+            'age' => 42,
+        ])
+            ->assertOk()
+            ->assertJson(['name' => 'Rick Astley', 'age' => 42]);
+
+        $this->postJson('/other-route', [
+            'name' => 'Rick Astley',
         ])
             ->assertOk()
             ->assertJson(['name' => 'Rick Astley']);

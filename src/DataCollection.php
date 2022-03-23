@@ -38,6 +38,7 @@ class DataCollection implements Responsable, Arrayable, Jsonable, JsonSerializab
 
     public function __construct(
         private string $dataClass,
+        private ?string $wrapKey = null
         Enumerable|array|CursorPaginator|Paginator|DataCollection $items
     ) {
         $this->items = match (true) {
@@ -70,7 +71,7 @@ class DataCollection implements Responsable, Arrayable, Jsonable, JsonSerializab
             : $this->items->all();
     }
 
-    public function transform(TransformationType $type): array
+    public function transform(TransformationType $type, ?string $wrapKey = null): array
     {
         $transformer = new DataCollectionTransformer(
             $this->dataClass,
@@ -79,7 +80,8 @@ class DataCollection implements Responsable, Arrayable, Jsonable, JsonSerializab
             $this->getExclusionTree(),
             $this->items,
             $this->through,
-            $this->filter
+            $this->filter,
+            $this->wrapKey ?? $wrapKey,
         );
 
         return $transformer->transform();
@@ -115,6 +117,13 @@ class DataCollection implements Responsable, Arrayable, Jsonable, JsonSerializab
         $items = $this->items;
 
         return $items;
+    }
+
+    public function wrapKey(string $key): static
+    {
+        $this->wrapKey = $key;
+
+        return $this;
     }
 
     public function getIterator(): ArrayIterator

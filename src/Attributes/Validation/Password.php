@@ -45,9 +45,22 @@ class Password extends ValidationAttribute
         }
 
         if ($this->uncompromised) {
-            $rule->uncompromised($this->uncompromisedThreshold);
+            $rule->uncompromised($this->uncompromisedThreshold ?? 0);
         }
 
         return [$rule];
+    }
+
+    private function wantsDefaults(): bool
+    {
+        return (
+            is_null($this->min) &&
+            is_null($this->letters) &&
+            is_null($this->mixedCase) &&
+            is_null($this->numbers) &&
+            is_null($this->symbols) &&
+            is_null($this->uncompromised) &&
+            is_null($this->uncompromisedThreshold)
+        );
     }
 }

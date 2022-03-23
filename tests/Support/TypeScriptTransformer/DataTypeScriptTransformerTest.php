@@ -10,6 +10,7 @@ use Spatie\LaravelData\Lazy;
 use Spatie\LaravelData\Support\TypeScriptTransformer\DataTypeScriptTransformer;
 use Spatie\LaravelData\Tests\Fakes\SimpleData;
 use Spatie\LaravelData\Tests\TestCase;
+use Spatie\LaravelData\Undefined;
 use Spatie\TypeScriptTransformer\TypeScriptTransformerConfig;
 
 class DataTypeScriptTransformerTest extends TestCase
