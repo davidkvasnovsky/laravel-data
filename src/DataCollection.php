@@ -38,10 +38,14 @@ class DataCollection implements Responsable, Arrayable, Jsonable, JsonSerializab
 
     public function __construct(
         private string $dataClass,
-        Enumerable|array|CursorPaginator|Paginator $items,
         private ?string $wrapKey = null
+        Enumerable|array|CursorPaginator|Paginator|DataCollection $items
     ) {
-        $this->items = is_array($items) ? new Collection($items) : $items;
+        $this->items = match (true) {
+            is_array($items) => new Collection($items),
+            $items instanceof DataCollection => $items->toCollection(),
+            default => $items
+        };
 
         $this->ensureAllItemsAreData();
     }

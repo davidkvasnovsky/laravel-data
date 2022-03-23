@@ -4,7 +4,6 @@ namespace Spatie\LaravelData\Resolvers;
 
 use Illuminate\Support\Collection;
 use Spatie\LaravelData\Data;
-use Spatie\LaravelData\DataCollection;
 use Spatie\LaravelData\Lazy;
 use Spatie\LaravelData\Support\DataConfig;
 use Spatie\LaravelData\Support\DataProperty;
@@ -70,20 +69,8 @@ class DataFromArrayResolver
             return $property->dataClassName()::from($value);
         }
 
-        if ($property->isDataCollection() && $value instanceof DataCollection) {
-            return  $value;
-        }
-
         if ($property->isDataCollection()) {
-            $items = array_map(
-                fn ($item) => $property->dataClassName()::from($item),
-                $value
-            );
-
-            return new DataCollection(
-                $property->dataClassName(),
-                $items
-            );
+            return $property->dataClassName()::collection($value);
         }
 
         return $value;

@@ -3,6 +3,7 @@
 namespace Spatie\LaravelData\Tests\Support\TypeScriptTransformer;
 
 use ReflectionClass;
+use Spatie\LaravelData\Attributes\DataCollectionOf;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelData\DataCollection;
 use Spatie\LaravelData\Lazy;
@@ -19,20 +20,23 @@ class DataTypeScriptTransformerTest extends TestCase
     {
         $config = TypeScriptTransformerConfig::create();
 
-        $data = new class (null, Undefined::create(), 42, true, 'Hello world', 3.14, ['the', 'meaning', 'of', 'life'], Lazy::create(fn () => 'Lazy'), SimpleData::from('Simple data'), SimpleData::collection([]), ) extends Data {
+        $data = new class (null, 42, true, 'Hello world', 3.14, ['the', 'meaning', 'of', 'life'], Lazy::create(fn () => 'Lazy'), SimpleData::from('Simple data'), SimpleData::collection([]), SimpleData::collection([]), SimpleData::collection([])) extends Data {
             public function __construct(
-                public null | int $nullable,
-                public Undefined | int $undefineable,
+                public null|int $nullable,
                 public int $int,
                 public bool $bool,
                 public string $string,
                 public float $float,
                 /** @var string[] */
                 public array $array,
-                public Lazy | string $lazy,
+                public Lazy|string $lazy,
                 public SimpleData $simpleData,
                 /** @var \Spatie\LaravelData\Tests\Fakes\SimpleData[] */
                 public DataCollection $dataCollection,
+                /** @var DataCollection<\Spatie\LaravelData\Tests\Fakes\SimpleData> */
+                public DataCollection $dataCollectionAlternative,
+                #[DataCollectionOf(SimpleData::class)]
+                public DataCollection $dataCollectionWithAttribute,
             ) {
             }
         };

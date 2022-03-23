@@ -35,10 +35,12 @@ class DataPropertyValidationRulesResolver
 
         $isNullable = $nullable || $property->isNullable();
 
-        $topLevelRules = [
-            $isNullable ? 'nullable' : 'required',
-            'array',
-        ];
+        $toplevelRule = match (true) {
+            $isNullable => 'nullable',
+            $property->isData() => "required",
+            $property->isDataCollection() => "present",
+            default => throw new TypeError()
+        };
 
         return $this->dataValidationRulesResolver
             ->execute(
@@ -48,7 +50,7 @@ class DataPropertyValidationRulesResolver
             ->mapWithKeys(fn (array $rules, string $name) => [
                 "{$prefix}{$name}" => $rules,
             ])
-            ->prepend($topLevelRules, $property->name());
+            ->prepend([$toplevelRule, 'array'], $property->name());
     }
 
     private function getRulesForProperty(DataProperty $property, bool $nullable): array

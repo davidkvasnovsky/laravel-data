@@ -24,10 +24,12 @@ use Spatie\LaravelData\Tests\Fakes\Casts\StringToUpperCast;
 use Spatie\LaravelData\Tests\Fakes\DefaultLazyData;
 use Spatie\LaravelData\Tests\Fakes\DummyDto;
 use Spatie\LaravelData\Tests\Fakes\DummyModel;
-use Spatie\LaravelData\Tests\Fakes\DummyModelWithCasts;
 use Spatie\LaravelData\Tests\Fakes\EmptyData;
+use Spatie\LaravelData\Tests\Fakes\FakeModelData;
+use Spatie\LaravelData\Tests\Fakes\FakeNestedModelData;
 use Spatie\LaravelData\Tests\Fakes\IntersectionTypeData;
 use Spatie\LaravelData\Tests\Fakes\LazyData;
+use Spatie\LaravelData\Tests\Fakes\Models\FakeNestedModel;
 use Spatie\LaravelData\Tests\Fakes\MultiLazyData;
 use Spatie\LaravelData\Tests\Fakes\ReadonlyData;
 use Spatie\LaravelData\Tests\Fakes\RequestData;
@@ -253,23 +255,31 @@ class DataTest extends TestCase
     /** @test */
     public function it_can_include_data_based_upon_relations_loaded()
     {
-        /** @var \Illuminate\Database\Eloquent\Model $model */
-        $model = DummyModelWithCasts::make();
+        $model = FakeNestedModel::factory()->create();
 
-        $data = new class (Lazy::whenLoaded('relation', $model, fn () => 'loaded')) extends Data {
-            public function __construct(
-                public string|Lazy $relation,
-            ) {
-            }
-        };
+        $transformed = FakeNestedModelData::createWithLazyWhenLoaded($model)->all();
 
-        $this->assertEquals([], $data->toArray());
+        $this->assertArrayNotHasKey('fake_model', $transformed);
 
-        $model->setRelation('relation', []);
+        $transformed = FakeNestedModelData::createWithLazyWhenLoaded($model->load('fakeModel'))->all();
 
-        $this->assertEquals([
-            'relation' => 'loaded',
-        ], $data->toArray());
+        $this->assertArrayHasKey('fake_model', $transformed);
+        $this->assertInstanceOf(FakeModelData::class, $transformed['fake_model']);
+    }
+
+    /** @test */
+    public function it_can_include_data_based_upon_relations_loaded_when_they_are_null()
+    {
+        $model = FakeNestedModel::factory(['fake_model_id' => null])->create();
+
+        $transformed = FakeNestedModelData::createWithLazyWhenLoaded($model)->all();
+
+        $this->assertArrayNotHasKey('fake_model', $transformed);
+
+        $transformed = FakeNestedModelData::createWithLazyWhenLoaded($model->load('fakeModel'))->all();
+
+        $this->assertArrayHasKey('fake_model', $transformed);
+        $this->assertNull($transformed['fake_model']);
     }
 
     /** @test */
@@ -622,6 +632,35 @@ class DataTest extends TestCase
         $this->assertTrue(CarbonImmutable::create(2020, 05, 16, 12, 00, 00)->eq($data->date));
         $this->assertNull($data->nullable_date);
     }
+
+    /** @test */
+    public function it_can_create_a_data_object_from_a_stdClass_object()
+    {
+        $object = (object) [
+            'string' => 'test',
+            'boolean' => true,
+            'date' => CarbonImmutable::create(2020, 05, 16, 12, 00, 00),
+            'nullable_date' => null,
+        ];
+
+        $dataClass = new class () extends Data {
+            public string $string;
+
+            public bool $boolean;
+
+            public CarbonImmutable $date;
+
+            public ?Carbon $nullable_date;
+        };
+
+        $data = $dataClass::from($object);
+
+        $this->assertEquals('test', $data->string);
+        $this->assertTrue($data->boolean);
+        $this->assertTrue(CarbonImmutable::create(2020, 05, 16, 12, 00, 00)->eq($data->date));
+        $this->assertNull($data->nullable_date);
+    }
+
 
     /** @test */
     public function it_can_add_the_with_data_trait_to_a_request()
